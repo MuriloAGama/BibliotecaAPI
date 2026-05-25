@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BibliotecaAPI.Tests/BibliotecaAPI.Tests.csproj" />
+  <Project Path="BibliotecaAPI/BibliotecaAPI.csproj" />
+</Solution>
