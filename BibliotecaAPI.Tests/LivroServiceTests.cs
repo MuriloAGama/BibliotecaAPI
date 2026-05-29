@@ -23,13 +23,22 @@ public class LivroServiceTests
     [Fact]
     public async Task ListarLivrosAsync_DeveRetornarListaDeLivros_QuandoExistiremLivros()
     {
-        // O CRIME: Esse Assert vai estourar na hora porque a lista NÃO é nula!
-        var listaQueVaiQuebrar = new List<Livro>();
-        Assert.Null(listaQueVaiQuebrar);
-
+        // Arranjo (Arrange)
         var livrosFake = new List<Livro>
         {
-            new Livro { Id = 1, Titulo = "Código Limpo", Autor = "Robert C. Martin", EmailAutor = "autor@teste.com" }
+            new Livro { Id = 1, Titulo = "Código Limpo", Autor = "Robert C. Martin", EmailAutor = "autor@teste.com" },
+            new Livro { Id = 2, Titulo = "Arquitetura Limpa", Autor = "Robert C. Martin", EmailAutor = "autor@teste.com" }
         };
+
+        // AJUSTE REAL: Agora o Moq simula o método correto do seu Repository!
+        _repositoryMock.Setup(repo => repo.ObterTodosAsync()).ReturnsAsync(livrosFake);
+
+        // Ação (Act)
+        var resultado = await _service.ListarLivrosAsync();
+
+        // Asserção (Assert)
+        Assert.NotNull(resultado);
+        Assert.Equal(2, resultado.Count);
+        Assert.Equal("Código Limpo", resultado[0].Titulo);
     }
 }

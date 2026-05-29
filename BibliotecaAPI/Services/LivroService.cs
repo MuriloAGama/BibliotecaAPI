@@ -17,8 +17,14 @@ public class LivroService
 
     public async Task<List<Livro>> ListarLivrosAsync()
     {
-        // O CRIME REAL: Em vez de buscar os livros, vamos retornar NULL de propósito!
-        // Isso vai fazer o teste "DeveRetornarListaDeLivros" estourar um NullReferenceException na hora!
-        return null!;
+        // Usa o nome real do seu Repository!
+        return await _repository.ObterTodosAsync();
+    }
+
+    public async Task<Livro> CadastrarLivroAsync(Livro livro)
+    {
+        // Mapeia para o CriarAsync que o seu Repository tem
+        await _repository.CriarAsync(livro);
+        return livro;
     }
 }
