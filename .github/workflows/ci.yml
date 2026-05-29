@@ -1,4 +1,4 @@
-name: Conexão CI - .NET & Docker
+name: Conexão CI/CD - .NET & Docker
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
     branches: [ "main", "master" ]
 
 jobs:
+  # === ETAPA 1: CONTINUOUS INTEGRATION (CI) ===
   build-and-test:
     runs-on: ubuntu-latest
 
@@ -19,14 +20,57 @@ jobs:
       with:
         dotnet-version: '10.0.x'
 
-    # Força o restore direto no arquivo de projeto
     - name: Restaurar pacotes
       run: dotnet restore ./BibliotecaAPI/BibliotecaAPI.csproj
 
-    # Força o build direto no arquivo de projeto
     - name: Compilar a aplicação (Build)
       run: dotnet build ./BibliotecaAPI/BibliotecaAPI.csproj --no-restore --configuration Release
 
-    # Builda o Docker usando o contexto correto da raiz
+    # Aqui rodariam seus testes do xUnit (Se quiser reativar no futuro)
+    # - name: Executar Testes
+    #   run: dotnet test ./BibliotecaAPI.Tests/BibliotecaAPI.Tests.csproj --no-build --configuration Release
+
+    # Usando o caminho real dentro da pasta BibliotecaAPI
     - name: Testar build da Imagem Docker
       run: docker build -t biblioteca-api:test -f ./BibliotecaAPI/Dockerfile .
+
+  # === ETAPA 2: CONTINUOUS DEPLOYMENT (CD) ===
+  deploy-image:
+    needs: build-and-test # SÓ RODA SE A ETAPA DE CI PASSAR!
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' # Só faz o deploy em caso de PUSH
+
+    permissions:
+      contents: read
+      packages: write # Permissão para o robô salvar a imagem no GitHub Packages
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    # Faz o login automático no cartório de imagens do GitHub (GHCR)
+    - name: Fazer login no GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    # Garante que o nome da imagem fique em letras minúsculas (padrão do Docker)
+    - name: Extrair metadados para o Docker
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ github.repository }}
+        tags: |
+          type=raw,value=latest
+
+    # Faz o Build definitivo e envia (Push) a imagem apontando pro caminho certo
+    - name: Construir e Enviar Imagem Docker (Push)
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./BibliotecaAPI/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
