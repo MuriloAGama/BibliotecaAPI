@@ -98,3 +98,12 @@ public class LivroServiceTests
         Assert.Equal("O e-mail do autor informado é inválido.", excecao.Message);
     }
 }
+// Teste criminoso para quebrar o pipeline
+public class TesteSabotagem
+{
+    [Xunit.Fact]
+    public void Teste_Deve_Falhar_De_Proposito()
+    {
+        Xunit.Assert.Equal("Sucesso", "Erro Total");
+    }
+}
