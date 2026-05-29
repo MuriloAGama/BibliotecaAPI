@@ -20,16 +20,14 @@ jobs:
       with:
         dotnet-version: '10.0.x'
 
-    # Correção aqui: Dizemos ao robô para rodar a restauração olhando para a pasta do projeto
+    # Aponta DIRETAMENTE para o arquivo .csproj (Sem choro de duplicar pasta)
     - name: Restaurar pacotes
-      run: dotnet restore
-      working-directory: ./BibliotecaAPI
+      run: dotnet restore ./BibliotecaAPI/BibliotecaAPI.csproj
 
-    # Dizemos ao robô para compilar direto de dentro da pasta do projeto
+    # Compila apontando direto para o arquivo .csproj
     - name: Compilar a aplicação (Build)
-      run: dotnet build --no-restore --configuration Release
-      working-directory: ./BibliotecaAPI
+      run: dotnet build ./BibliotecaAPI/BibliotecaAPI.csproj --no-restore --configuration Release
 
-    # O teste do Dockerfile (esse continua rodando na raiz porque o contexto do Docker precisa ler tudo)
+    # Builda a imagem Docker usando o contexto da raiz
     - name: Testar build da Imagem Docker
       run: docker build -t biblioteca-api:test -f ./BibliotecaAPI/Dockerfile .
