@@ -1,0 +1,35 @@
+name: Conexão CI - .NET & Docker
+
+# Define o que vai disparar o robô (toda vez que der push na branch principal)
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # O GitHub vai ligar uma máquina Linux zerada na nuvem
+
+    steps:
+    # 1. Faz o download do seu código do repositório para dentro da máquina virtual
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    # 2. Instala o SDK do .NET 10 (a mesma versão que você está usando)
+    - name: Configurar o .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    # 3. Restaura as dependências e pacotes NuGet do projeto
+    - name: Restaurar pacotes
+      run: dotnet restore
+
+    # 4. Compila o projeto para garantir que não tem nenhum erro de sintaxe
+    - name: Compilar a aplicação (Build)
+      run: dotnet build --no-restore --configuration Release
+
+    # 5. O teste final: Valida se o seu Dockerfile está construindo a imagem sem quebrar
+    - name: Testar build da Imagem Docker
+      run: docker build -t biblioteca-api:test -f ./BibliotecaAPI/Dockerfile .
