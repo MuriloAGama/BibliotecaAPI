@@ -1,36 +1,37 @@
 version: '3.8'
 
 services:
-  # Serviço 1: O nosso banco de dados SQL Server
+  # Container do Banco de Dados
   biblioteca-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: mssql-server-container
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=SuaSenhaForteAqui123!
+      - ACCEPT_EULA=Y # Obrigatório da Microsoft para aceitar os termos de uso do SQL Server
+      - MSSQL_SA_PASSWORD=SuaSenhaForteAqui123! # Senha do usuário administrador 'sa'
     ports:
-      - "1433:1433"
+      - "1433:1433" # Porta padrão do SQL Server liberada para acesso externo (ex: SSMS)
     networks:
-      - biblioteca-network
+      - biblioteca-network # Vincula o banco à rede privada para a API conseguir alcançá-lo
 
-  # Serviço 2: A nossa API .NET 10 que criamos a imagem
+  # Container da API .NET 10
   biblioteca-api:
     image: biblioteca-api
     container_name: biblioteca-api-container
     build:
-      context: ./BibliotecaAPI
-      dockerfile: Dockerfile
+      context: ./BibliotecaAPI # Pasta onde está o código fonte da API
+      dockerfile: Dockerfile # Nome do arquivo com as instruções de build da imagem
     ports:
-      - "8080:8080"
+      - "8080:8080" # Mapeia a porta da API do container para a máquina local acessar o Swagger
     environment:
-      # Aqui mudamos o Connection String para apontar para o nome do serviço do banco!
+      # Ponto crítico: O 'Server=' aponta para o nome do serviço 'biblioteca-db' em vez de 'localhost'
       - ConnectionStrings__DefaultConnection=Server=biblioteca-db;Database=BibliotecaDb;User Id=sa;Password=SuaSenhaForteAqui123!;TrustServerCertificate=True;
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Development # Define o ambiente como desenvolvimento para habilitar o Swagger
     depends_on:
-      - biblioteca-db
+      - biblioteca-db # Garante que o container do banco inicialize antes do container da API
     networks:
-      - biblioteca-network
+      - biblioteca-network # Conecta na mesma rede do banco para habilitar a comunicação interna
 
+# Configuração da Rede Isolada do Docker
 networks:
   biblioteca-network:
-    driver: bridge
+    driver: bridge # Cria uma rede virtual do tipo bridge para isolar os containers e permitir DNS interno pelo nome do serviço
