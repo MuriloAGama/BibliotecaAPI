@@ -14,20 +14,19 @@ jobs:
     - name: Checkout do código
       uses: actions/checkout@v4
 
-    # Instala o SDK do .NET 10
     - name: Configurar o .NET SDK
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '10.0.x'
 
-    # Aponta DIRETAMENTE para o arquivo .csproj (Sem choro de duplicar pasta)
+    # Força o restore direto no arquivo de projeto
     - name: Restaurar pacotes
       run: dotnet restore ./BibliotecaAPI/BibliotecaAPI.csproj
 
-    # Compila apontando direto para o arquivo .csproj
+    # Força o build direto no arquivo de projeto
     - name: Compilar a aplicação (Build)
       run: dotnet build ./BibliotecaAPI/BibliotecaAPI.csproj --no-restore --configuration Release
 
-    # Builda a imagem Docker usando o contexto da raiz
+    # Builda o Docker usando o contexto correto da raiz
     - name: Testar build da Imagem Docker
       run: docker build -t biblioteca-api:test -f ./BibliotecaAPI/Dockerfile .
