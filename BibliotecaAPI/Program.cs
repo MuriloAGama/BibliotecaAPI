@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔥 CONFIGURAÇÃO DO RENDER: Forçar o .NET a escutar na porta que a nuvem mandar
+// 🔥 CONFIGURAÇÃO DO RENDER: Forçar o .NET a escutar na porta correta da nuvem
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://*:{port}");
 
@@ -15,7 +15,22 @@ builder.WebHost.UseUrls($"http://*:{port}");
 
 builder.Services.AddScoped<LivroService>();
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+
+// 🔥 CONFIGURAÇÃO DO SWAGGER (OpenAPI): Injeta a URL correta com HTTPS para evitar erro de CORS no Execute
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        if (Environment.GetEnvironmentVariable("RENDER") != null)
+        {
+            document.Servers = new List<Microsoft.OpenApi.Models.OpenApiServer>
+            {
+                new Microsoft.OpenApi.Models.OpenApiServer { Url = "https://bibliotecapi-v5q7.onrender.com" }
+            };
+        }
+        return Task.CompletedTask;
+    });
+});
 
 // Configuração da política de CORS para liberar o acesso ao Swagger/Frontend
 builder.Services.AddCors(options =>
@@ -33,15 +48,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     
-    // Se estiver no Render (onde a variável RENDER existe) ou se não achar a Connection String local
+    // Se estiver no Render ou se não encontrar a Connection String local válida
     if (Environment.GetEnvironmentVariable("RENDER") != null || string.IsNullOrEmpty(connectionString) || connectionString.Contains("localhost") || connectionString.Contains("127.0.0.1"))
     {
-        // Usa o banco em memória para o Render não quebrar tentando acessar o localhost
         options.UseInMemoryDatabase("BibliotecaDev");
     }
     else
     {
-        // Mantém o SQL Server para quando você estiver rodando no seu ambiente local
         options.UseSqlServer(connectionString);
     }
 });
@@ -65,18 +78,6 @@ app.UseSwaggerUI(options =>
 
 app.UseAuthorization();
 app.MapControllers();
-
-// 🔥 FORÇAR O SWAGGER A USAR A URL DO RENDER EM PRODUÇÃO (Evita erro de CORS/Failed to fetch)
-if (Environment.GetEnvironmentVariable("RENDER") != null)
-{
-    app.Use(async (context, next) =>
-    {
-        // Altera o schema para https e força o host correto do Render nas requisições do Swagger
-        context.Request.Scheme = "https";
-        context.Request.Host = new HostString("bibliotecapi-v5q7.onrender.com");
-        await next();
-    });
-}
 
 // Inicialização automática do banco de dados (Popula a estrutura de tabelas)
 using (var scope = app.Services.CreateScope())
