@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 🔥 CONFIGURAÇÃO DO RENDER: Forçar o .NET a escutar na porta que a nuvem mandar
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://*:{port}");
 
@@ -16,6 +17,7 @@ builder.Services.AddScoped<LivroService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// Configuração da política de CORS para liberar o acesso ao Swagger/Frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("LiberarGeral", policy =>
@@ -26,21 +28,20 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configuração do Banco (Lendo a string de conexão)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
+// 🔥 CONFIGURAÇÃO DO BANCO: SQL Server local vs Banco em Memória na nuvem
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    // Se estiver no Render e não tiver string de conexão válida externa, evita quebrar usando o banco em memória para testes
-    if (string.IsNullOrEmpty(connectionString) || connectionString.Contains("localhost") || connectionString.Contains("127.0.0.1"))
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    
+    // Se estiver no Render (onde a variável RENDER existe) ou se não achar a Connection String local
+    if (Environment.GetEnvironmentVariable("RENDER") != null || string.IsNullOrEmpty(connectionString) || connectionString.Contains("localhost") || connectionString.Contains("127.0.0.1"))
     {
-        // Se quiser testar na nuvem sem banco configurado ainda, descomente a linha abaixo e instale o pacote: Microsoft.EntityFrameworkCore.InMemory
-        // options.UseInMemoryDatabase("BibliotecaDev");
-        
-        options.UseSqlServer(connectionString); // Mantém o SQL Server, mas fique atento aos logs!
+        // Usa o banco em memória para o Render não quebrar tentando acessar o localhost
+        options.UseInMemoryDatabase("BibliotecaDev");
     }
     else
     {
+        // Mantém o SQL Server para quando você estiver rodando no seu ambiente local
         options.UseSqlServer(connectionString);
     }
 });
@@ -59,13 +60,13 @@ app.MapOpenApi();
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/openapi/v1.json", "Biblioteca API v1");
-    options.RoutePrefix = "swagger"; // Acessível em /swagger
+    options.RoutePrefix = "swagger"; // Swagger acessível em /swagger
 });
 
 app.UseAuthorization();
 app.MapControllers();
 
-// Inicialização automática do banco de dados
+// Inicialização automática do banco de dados (Popula a estrutura de tabelas)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -74,12 +75,12 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<AppDbContext>();
         Console.WriteLine("🔄 Tentando aplicar/verificar o banco de dados...");
         await context.Database.EnsureCreatedAsync();
-        Console.WriteLine("✅ Banco de dados verificado com sucesso!");
+        Console.WriteLine("✅ Banco de dados inicializado com sucesso!");
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "🚨 Falha crítica na criação automática do banco de dados. Verifique a Connection String!");
+        logger.LogError(ex, "🚨 Falha crítica na criação automática do banco de dados.");
     }
 }
 
