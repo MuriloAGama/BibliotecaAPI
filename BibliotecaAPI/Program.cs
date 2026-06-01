@@ -23,10 +23,9 @@ builder.Services.AddOpenApi(options =>
     {
         if (Environment.GetEnvironmentVariable("RENDER") != null)
         {
-            document.Servers = new List<Microsoft.OpenApi.Models.OpenApiServer>
-            {
-                new Microsoft.OpenApi.Models.OpenApiServer { Url = "https://bibliotecapi-v5q7.onrender.com" }
-            };
+            // Limpa os servidores padrão locais e injeta o host seguro do Render usando inferência de tipo
+            document.Servers.Clear();
+            document.Servers.Add(new() { Url = "https://bibliotecapi-v5q7.onrender.com" });
         }
         return Task.CompletedTask;
     });
