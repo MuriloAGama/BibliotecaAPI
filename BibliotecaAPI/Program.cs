@@ -66,6 +66,18 @@ app.UseSwaggerUI(options =>
 app.UseAuthorization();
 app.MapControllers();
 
+// 🔥 FORÇAR O SWAGGER A USAR A URL DO RENDER EM PRODUÇÃO (Evita erro de CORS/Failed to fetch)
+if (Environment.GetEnvironmentVariable("RENDER") != null)
+{
+    app.Use(async (context, next) =>
+    {
+        // Altera o schema para https e força o host correto do Render nas requisições do Swagger
+        context.Request.Scheme = "https";
+        context.Request.Host = new HostString("bibliotecapi-v5q7.onrender.com");
+        await next();
+    });
+}
+
 // Inicialização automática do banco de dados (Popula a estrutura de tabelas)
 using (var scope = app.Services.CreateScope())
 {
