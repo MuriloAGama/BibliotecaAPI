@@ -14,16 +14,25 @@ builder.WebHost.UseUrls($"http://*:{port}");
 // ----------------------------------------------------
 
 builder.Services.AddScoped<LivroService>();
-builder.Services.AddControllers();
+builder.Services.AddScoped<LivroRepository>();
 
-// 🔥 CONFIGURAÇÃO DO SWAGGER (OpenAPI): Injeta a URL correta com HTTPS para evitar erro de CORS no Execute
+// Configura os Controllers e força o padrão CamelCase no JSON
+builder.Services.AddControllers().AddJsonOptions(options => 
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+});
+
+// 🔥 SOLUÇÃO DO NOT FOUND: Força o .NET a transformar todas as rotas em minúsculo (/api/livro)
+builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
+
+// 🔥 CONFIGURAÇÃO DO SWAGGER (OpenAPI): Injeta a URL correta com HTTPS para evitar erro de CORS
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
         if (Environment.GetEnvironmentVariable("RENDER") != null)
         {
-            // Limpa os servidores padrão locais e injeta o host seguro do Render usando inferência de tipo
+            // Limpa os servidores locais e injeta o host seguro do Render por inferência de tipo
             document.Servers.Clear();
             document.Servers.Add(new() { Url = "https://bibliotecapi-v5q7.onrender.com" });
         }
@@ -31,7 +40,7 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
-// Configuração da política de CORS para liberar o acesso ao Swagger/Frontend
+// Configuração da política de CORS para liberar o acesso total ao Swagger/Frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("LiberarGeral", policy =>
@@ -47,7 +56,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     
-    // Se estiver no Render ou se não encontrar a Connection String local válida
+    // Se estiver no Render ou se não encontrar uma Connection String local válida
     if (Environment.GetEnvironmentVariable("RENDER") != null || string.IsNullOrEmpty(connectionString) || connectionString.Contains("localhost") || connectionString.Contains("127.0.0.1"))
     {
         options.UseInMemoryDatabase("BibliotecaDev");
@@ -57,8 +66,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseSqlServer(connectionString);
     }
 });
-
-builder.Services.AddScoped<LivroRepository>();
 
 var app = builder.Build();
 

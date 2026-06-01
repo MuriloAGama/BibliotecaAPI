@@ -1,85 +1,81 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using BibliotecaAPI.Models;
+using BibliotecaAPI.Models; // Certifique-se de que o namespace do modelo Livro está correto aqui
 using BibliotecaAPI.Repositories;
 using BibliotecaAPI.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BibliotecaAPI.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-public class LivroController : ControllerBase
+namespace BibliotecaAPI.Controllers
 {
-    private readonly LivroRepository _repository;
-        private readonly LivroService _livroService; // 1. Declarado o Service aqui
+    [ApiController]
+    [Route("api/[controller]")]
+    public class LivroController : ControllerBase
+    {
+        private readonly LivroRepository _repository;
+        private readonly LivroService _livroService;
 
-            // 2. Injetando o LivroRepository e o LivroService juntos no construtor
-                public LivroController(LivroRepository repository, LivroService livroService)
-                    {
-                            _repository = repository;
-                                    _livroService = livroService;
-                                        }
+        // Construtor injetando o Repository e o Service juntos
+        public LivroController(LivroRepository repository, LivroService livroService)
+        {
+            _repository = repository;
+            _livroService = livroService;
+        }
 
-                                            /// <summary>
-                                                /// Gera uma lista de livros.
-                                                    /// </summary>
-                                                        [HttpGet]
-                                                            public async Task<ActionResult<List<Livro>>> Get()
-                                                                {
-                                                                        var livros = await _repository.ObterTodosAsync();
-                                                                                return Ok(livros);
-                                                                                    }
+        /// <summary>
+        /// Gera uma lista de livros.
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<List<Livro>>> Get()
+        {
+            var livros = await _repository.ObterTodosAsync();
+            return Ok(livros);
+        }
 
-                                                                                        /// <summary>
-                                                                                            /// Busca um livro pelo seu ID.
-                                                                                                /// </summary>
-                                                                                                    /// <param name="id">ID do livro a ser buscado.</param>
-                                                                                                        /// <returns>O livro encontrado com seu ID.</returns>
-                                                                                                            [HttpGet("{id}")]
-                                                                                                                public async Task<ActionResult<Livro>> GetById(int id)
-                                                                                                                    {
-                                                                                                                            var livro = await _repository.ObterPorIdAsync(id);
-                                                                                                                                    
-                                                                                                                                            if (livro == null)
-                                                                                                                                                    {
-                                                                                                                                                                return NotFound(new { mensagem = $"Livro com ID {id} não foi encontrado." });
-                                                                                                                                                                        }
+        /// <summary>
+        /// Busca um livro pelo seu ID.
+        /// </summary>
+        /// <param name="id">ID do livro a ser buscado.</param>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Livro>> GetById(int id)
+        {
+            var livro = await _repository.ObterPorIdAsync(id);
 
-                                                                                                                                                                                return Ok(livro);
-                                                                                                                                                                                    }
+            if (livro == null)
+            {
+                return NotFound(new { mensagem = $"Livro com ID {id} não foi encontrado." });
+            }
 
-                                                                                                                                                                                        /// <summary>
-                                                                                                                                                                                            /// Cria um novo livro na biblioteca.
-                                                                                                                                                                                                /// </summary>
-                                                                                                                                                                                                    /// <param name="novoLivro">Dados para criação do livro.</param>
-                                                                                                                                                                                                        /// <returns>O livro recém-criado com seu ID gerado.</returns>
-                                                                                                                                                                                                            [HttpPost]
-                                                                                                                                                                                                                [ProducesResponseType(StatusCodes.Status201Created)]
-                                                                                                                                                                                                                    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-                                                                                                                                                                                                                        public async Task<ActionResult<Livro>> Post([FromBody] Livro novoLivro)
-                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                    if (novoLivro == null)
-                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                        return BadRequest("Os dados do livro não podem ser nulos.");
-                                                                                                                                                                                                                                                                }
+            return Ok(livro);
+        }
 
-                                                                                                                                                                                                                                                                        try
-                                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                                            // Agora sim o Service está injetado e pronto para rodar as validações!
-                                                                                                                                                                                                                                                                                                        await _livroService.CadastrarLivroAsync(novoLivro);
-                                                                                                                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                                                                                                                return CreatedAtAction(nameof(GetById), new { id = novoLivro.Id }, novoLivro);
-                                                                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                                                                                catch (ArgumentException ex)
-                                                                                                                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                                                                                                                                    return BadRequest(ex.Message);
-                                                                                                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                                                                                                                    catch (Exception ex)
-                                                                                                                                                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                                                                                                                                                        return StatusCode(500, $"Ocorreu um erro ao criar o livro: {ex.Message}");
-                                                                                                                                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                                                                                                                                    }
+        /// <summary>
+        /// Cria um novo livro na biblioteca.
+        /// </summary>
+        /// <param name="novoLivro">Dados para criação do livro.</param>
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Livro>> Post([FromBody] Livro novoLivro)
+        {
+            if (novoLivro == null)
+            {
+                return BadRequest("Os dados do livro não podem ser nulos.");
+            }
+
+            try
+            {
+                // Executa as regras de negócio antes de salvar
+                await _livroService.CadastrarLivroAsync(novoLivro);
+
+                // Retorna o Status 201 chamando o método GetById
+                return CreatedAtAction(nameof(GetById), new { id = novoLivro.Id }, novoLivro);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocorreu um erro ao criar o livro: {ex.Message}");
+            }
+        }
+    }
+}
