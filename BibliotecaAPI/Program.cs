@@ -71,6 +71,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // 3. AGORA construímos a aplicação
 var app = builder.Build();
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions {
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | 
+                       Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+});
+
 // ----------------------------------------------------
 // 4. Middleware Pipeline (A ordem de execução importa)
 // ----------------------------------------------------
