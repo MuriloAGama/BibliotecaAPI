@@ -3,14 +3,15 @@ using BibliotecaAPI.Services;
 using BibliotecaAPI.Repositories;
 using Microsoft.EntityFrameworkCore;
 
+// 1. PRIMEIRO criamos o builder (Isso precisa ser a primeira linha executada!)
 var builder = WebApplication.CreateBuilder(args);
 
 // 🔥 CONFIGURAÇÃO DO RENDER: Forçar o .NET a escutar na porta correta da nuvem
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+var port = Environment.GetEnvironmentVariable("PORT") ?? "10000"; // Docker no Render costuma usar 10000 por padrão
 builder.WebHost.UseUrls($"http://*:{port}");
 
 // ----------------------------------------------------
-// 1. Injeção de Dependências e Configuração de Serviços
+// 2. Injeção de Dependências e Configuração de Serviços
 // ----------------------------------------------------
 
 builder.Services.AddScoped<LivroService>();
@@ -67,10 +68,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 });
 
+// 3. AGORA construímos a aplicação
 var app = builder.Build();
 
 // ----------------------------------------------------
-// 2. Middleware Pipeline (A ordem de execução importa)
+// 4. Middleware Pipeline (A ordem de execução importa)
 // ----------------------------------------------------
 
 app.UseCors("LiberarGeral");
@@ -83,6 +85,8 @@ app.UseSwaggerUI(options =>
 });
 
 app.UseAuthorization();
+
+// Liga definitivamente os teus controllers e endpoints
 app.MapControllers();
 
 // Inicialização automática do banco de dados (Popula a estrutura de tabelas)
@@ -102,6 +106,5 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "🚨 Falha crítica na criação automática do banco de dados.");
     }
 }
-// Forçando build limpo na nuvem
 
 app.Run();
