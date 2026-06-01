@@ -1,21 +1,26 @@
-# Etapa 1: Build da aplicação usando o SDK do .NET 10
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copia a pasta inteira do projeto para dentro de /src/BibliotecaAPI no container
-COPY BibliotecaAPI/ ./BibliotecaAPI/
+# 1. Copia o arquivo .csproj de dentro da subpasta para a estrutura do Docker
+COPY ["BibliotecaAPI/BibliotecaAPI.csproj", "BibliotecaAPI/"]
+RUN dotnet restore "BibliotecaAPI/BibliotecaAPI.csproj"
 
-# Entra na pasta onde o código realmente está para restaurar e publicar
-WORKDIR /src/BibliotecaAPI
-RUN dotnet restore
-RUN dotnet publish -c Release -o out
+# 2. Copia o restante dos arquivos do repositório
+COPY . .
 
-# Etapa 2: Runtime do .NET 10 para execução (Imagem leve)
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+# 3. Entra na pasta do projeto para rodar o build e publish
+WORKDIR "/src/BibliotecaAPI"
+RUN dotnet build "BibliotecaAPI.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "BibliotecaAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# 4. Configura o container final para rodar a API de forma contínua
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-# Busca os arquivos publicados de dentro da pasta out correta
-COPY --from=build-env /src/BibliotecaAPI/out .
+COPY --from=publish /app/publish .
 
-EXPOSE 8080
+# Garante que o ASP.NET vai escutar a porta que o Render mandar
+ENV ASPNETCORE_URLS=http://+:10000
 
 ENTRYPOINT ["dotnet", "BibliotecaAPI.dll"]
