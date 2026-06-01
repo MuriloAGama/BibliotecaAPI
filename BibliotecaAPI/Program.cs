@@ -102,5 +102,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "🚨 Falha crítica na criação automática do banco de dados.");
     }
 }
+// Forçando build limpo na nuvem
 
 app.Run();
