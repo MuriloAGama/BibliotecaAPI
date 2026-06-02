@@ -13,7 +13,7 @@ RUN find . -name "*.csproj"
 RUN dotnet build "BibliotecaAPI/BibliotecaAPI.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "BibliotecaAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "BibliotecaAPI/BibliotecaAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Configuração final
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
