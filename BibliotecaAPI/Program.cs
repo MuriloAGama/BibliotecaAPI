@@ -6,9 +6,12 @@ using Microsoft.EntityFrameworkCore;
 // 1. PRIMEIRO criamos o builder (Isso precisa ser a primeira linha executada!)
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔥 CONFIGURAÇÃO DO RENDER: Forçar o .NET a escutar na porta correta da nuvem
-var port = Environment.GetEnvironmentVariable("PORT") ?? "10000"; // Docker no Render costuma usar 10000 por padrão
-builder.WebHost.UseUrls($"http://*:{port}");
+// --- FORÇAR PORTA DO RENDER ---
+var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+// ------------------------------
+
+builder.Services.AddControllers();
 
 // ----------------------------------------------------
 // 2. Injeção de Dependências e Configuração de Serviços
