@@ -4,6 +4,7 @@ using BibliotecaAPI.Data;
 using BibliotecaAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace BibliotecaAPI.Repositories;
 
 public class LivroRepository
@@ -25,7 +26,7 @@ public class LivroRepository
         return await _context.Livros.FirstOrDefaultAsync(l => l.Id == id);
     }
     
-    public virtual async Task CriarAsync(Livro novoLivro)
+    public virtual async Task CadastrarLivroAsync(Livro novoLivro)
     {
         await _context.Livros.AddAsync(novoLivro);
         await _context.SaveChangesAsync();

@@ -1,30 +1,23 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using BibliotecaAPI.Models;
+using BibliotecaAPI.Interfaces;
 using BibliotecaAPI.Repositories;
 
-namespace BibliotecaAPI.Services;
-
-public class LivroService
+namespace BibliotecaAPI.Services
 {
-    private readonly LivroRepository _repository;
-
-    public LivroService(LivroRepository repository)
+    public class LivroService : ILivroService
     {
-        _repository = repository;
-    }
+        private readonly LivroRepository _repository;
+        
+        public LivroService(LivroRepository repository) => _repository = repository;
 
-    public async Task<List<Livro>> ListarLivrosAsync()
-    {
-        // Usa o nome real do seu Repository!
-        return await _repository.ObterTodosAsync();
-    }
-
-    public async Task<Livro> CadastrarLivroAsync(Livro livro)
-    {
-        // Mapeia para o CriarAsync que o seu Repository tem
-        await _repository.CriarAsync(livro);
-        return livro;
+        public async Task<List<Livro>> ObterTodosAsync() => await _repository.ObterTodosAsync();
+        
+        public async Task<Livro?> ObterPorIdAsync(int id) => await _repository.ObterPorIdAsync(id);
+    
+       public async Task CadastrarLivroAsync(Livro livro) 
+        {
+        await _repository.CadastrarLivroAsync(livro); 
+        }
     }
 }

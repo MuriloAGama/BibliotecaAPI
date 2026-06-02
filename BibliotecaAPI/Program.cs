@@ -2,6 +2,7 @@ using BibliotecaAPI.Data;
 using BibliotecaAPI.Services;
 using BibliotecaAPI.Repositories;
 using Microsoft.EntityFrameworkCore;
+using BibliotecaAPI.Interfaces;
 
 // 1. PRIMEIRO criamos o builder (Isso precisa ser a primeira linha executada!)
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,8 @@ builder.Services.AddControllers();
 
 builder.Services.AddScoped<LivroService>();
 builder.Services.AddScoped<LivroRepository>();
+// Registra o Service e a sua Interface
+builder.Services.AddScoped<ILivroService, LivroService>();
 
 // Configura os Controllers e força o padrão CamelCase no JSON
 builder.Services.AddControllers().AddJsonOptions(options => 
