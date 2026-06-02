@@ -3,9 +3,8 @@ WORKDIR /src
 
 # Como o "Build Context" é a pasta BibliotecaAPI, 
 # o .csproj já está na raiz do contexto.
-COPY ["BibliotecaAPI.csproj", "./"]
-RUN dotnet restore "BibliotecaAPI.csproj"
-
+COPY *.csproj ./
+RUN dotnet restore
 # Copia o restante dos arquivos
 COPY . .
 
