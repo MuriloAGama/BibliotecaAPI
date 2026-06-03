@@ -1,20 +1,21 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copia tudo (incluindo a solution)
+# Copia tudo para o diretório de trabalho
 COPY . .
 
-# Restaura a solução inteira
-RUN dotnet restore "BibliotecaAPI.sln"
+# Restaura a solution automaticamente, não importa onde ela esteja na estrutura
+RUN dotnet restore "$(find . -name '*.sln')"
 
-# Faz o build da solução inteira
-RUN dotnet build "BibliotecaAPI.sln" -c Release -o /app/build
+# Faz o build da solution encontrada
+RUN dotnet build "$(find . -name '*.sln')" -c Release -o /app/build
 
+# Estágio de Publish
 FROM build AS publish
-# Faz o publish apontando para o projeto da API, mas já aproveitando o build da solução
+# já buildou, especifica o projeto principal para publicar
 RUN dotnet publish "BibliotecaAPI/BibliotecaAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Final continua igual
+# Estágio Final (Runtime)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
