@@ -1,15 +1,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Como o "Build Context" é a pasta BibliotecaAPI, 
-# o .csproj já está na raiz do contexto.
-COPY . .
-RUN dotnet restore
-# Copia o restante dos arquivos
+# Copia tudo de uma vez. Como o comando 'restore' e 'build' 
+# já vão ler o que está aqui dentro, um único COPY resolve.
 COPY . .
 
-RUN find . -name "*.csproj"
-# Faz o build (já estamos em /src)
+# Faz o restore (o dotnet encontra o .csproj automaticamente na árvore de pastas)
+RUN dotnet restore
+
+# Faz o build
 RUN dotnet build "BibliotecaAPI/BibliotecaAPI.csproj" -c Release -o /app/build
 
 FROM build AS publish

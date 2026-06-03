@@ -23,14 +23,14 @@ public class LivroServiceTests
     [Fact]
     public async Task ListarLivrosAsync_DeveRetornarListaDeLivros_QuandoExistiremLivros()
     {
-        // Arranjo (Arrange)
+        // (Arrange)
         var livrosFake = new List<Livro>
         {
             new Livro { Id = 1, Titulo = "Código Limpo", Autor = "Robert C. Martin", EmailAutor = "autor@teste.com" },
             new Livro { Id = 2, Titulo = "Arquitetura Limpa", Autor = "Robert C. Martin", EmailAutor = "autor@teste.com" }
         };
 
-        // AJUSTE REAL: Agora o Moq simula o método correto do seu Repository!
+        //Agora o Moq simula o método correto do Repository!
         _repositoryMock.Setup(repo => repo.ObterTodosAsync()).ReturnsAsync(livrosFake);
 
         // Ação (Act)

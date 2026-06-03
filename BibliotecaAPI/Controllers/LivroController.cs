@@ -8,7 +8,6 @@ public class LivroController : ControllerBase
 {
     private readonly ILivroService _livroService;
 
-    // Agora o Controller só conhece a Interface, respeitando o princípio de Inversão de Dependência
     public LivroController(ILivroService livroService)
     {
         _livroService = livroService;

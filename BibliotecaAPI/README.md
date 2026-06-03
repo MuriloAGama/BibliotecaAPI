@@ -1,25 +1,32 @@
+Aqui está o README.md completo, formatado e pronto para você copiar e colar no seu repositório:
+
+Markdown
 # 📚 BibliotecaAPI
 
-Uma API Web robusta e escalável desenvolvida em **.NET 9** para o gerenciamento de uma biblioteca (livros, autores, empréstimos e usuários). O projeto foi construído seguindo os princípios de **Clean Code** e **Arquitetura em Camadas**, garantindo uma separação clara de responsabilidades, facilidade de manutenção e testes.
+Uma API Web robusta, escalável e resiliente desenvolvida em **.NET 10** para o gerenciamento de bibliotecas. O projeto foi estruturado para ser uma aplicação de nível enterprise, focada em boas práticas de engenharia de software, automação de infraestrutura e qualidade de código.
 
 ---
 
-## 🚀 Tecnologias e Ferramentas Utilizadas
+## 🛠️ Tecnologias e Ferramentas
 
-- **Runtime:** .NET 9
+- **Runtime:** .NET 10
 - **Linguagem:** C#
-- **Framework Principal:** ASP.NET Core Web API
-- **Documentação:** Swagger / OpenAPI (para testes rápidos de endpoints)
-- **Padrão Arquitetural:** Layered Architecture (Camadas)
+- **Arquitetura:** Layered Architecture (Clean Architecture concepts)
+- **Design Patterns:** SOLID, Injeção de Dependência
+- **Automação (CI/CD):** GitHub Actions
+- **Containerização:** Docker
+- **Testes:** xUnit, Moq
+- **Documentação:** Swagger / OpenAPI
 
 ---
 
-## 🏗️ Arquitetura do Projeto
+## 🏗️ Estrutura do Projeto
 
-Para garantir um sistema de alta demanda, modular e de fácil evolução, o projeto foi dividido nas seguintes camadas:
+O sistema foi modularizado para garantir a separação de responsabilidades e facilitar a manutenção e escalabilidade:
 
 ```text
-├── BibliotecaAPI.API          # Camada de Apresentação (Controllers, Configuração do Swagger/DI)
-├── BibliotecaAPI.Application  # Camada de Negócio (Interfaces, Serviços, Regras de Negócio e DTOs)
-├── BibliotecaAPI.Infrastructure # Camada de Infraestrutura (Acesso a dados, Repositórios e Contexto)
-└── BibliotecaAPI.Domain       # Camada de Domínio (Entidades centrais da aplicação)
+├── BibliotecaAPI.API            # Camada de Apresentação (Controllers, Middleware, Configuração)
+├── BibliotecaAPI.Application    # Regras de Negócio, Services, Interfaces e DTOs
+├── BibliotecaAPI.Infrastructure # Acesso a dados (ORM, Repositórios, Contexto)
+├── BibliotecaAPI.Domain         # Entidades de Domínio e lógica central
+└── BibliotecaAPI.Tests          # Testes Unitários e de Integração (xUnit/Moq)

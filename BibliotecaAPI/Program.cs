@@ -29,10 +29,10 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
 });
 
-// 🔥 SOLUÇÃO DO NOT FOUND: Força o .NET a transformar todas as rotas em minúsculo (/api/livro)
+// SOLUÇÃO DO NOT FOUND: Força o .NET a transformar todas as rotas em minúsculo (/api/livro)
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
-// 🔥 CONFIGURAÇÃO DO SWAGGER (OpenAPI): Injeta a URL correta com HTTPS para evitar erro de CORS
+// CONFIGURAÇÃO DO SWAGGER (OpenAPI): Injeta a URL correta com HTTPS para evitar erro de CORS
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
@@ -58,7 +58,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 🔥 CONFIGURAÇÃO DO BANCO: SQL Server local vs Banco em Memória na nuvem
+// CONFIGURAÇÃO DO BANCO: SQL Server local e Banco em Memória na nuvem
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -74,7 +74,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 });
 
-// 3. AGORA construímos a aplicação
+// 3. construindo a aplicação
 var app = builder.Build();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions {
@@ -107,14 +107,20 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
-        Console.WriteLine("🔄 Tentando aplicar/verificar o banco de dados...");
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Tentando aplicar/verificar o banco de dados...");
+        Console.ResetColor();
         await context.Database.EnsureCreatedAsync();
-        Console.WriteLine("✅ Banco de dados inicializado com sucesso!");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("Banco de dados inicializado com sucesso!");
+        Console.ResetColor();
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "🚨 Falha crítica na criação automática do banco de dados.");
+        Console.ForegroundColor = ConsoleColor.Red;
+        logger.LogError(ex, "Falha crítica na criação do banco de dados.");
+        Console.ResetColor();
     }
 }
 
