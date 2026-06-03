@@ -1,23 +1,21 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copia tudo de uma vez. Como o comando 'restore' e 'build' 
-# já vão ler o que está aqui dentro, um único COPY resolve.
+# Copia tudo (incluindo a solution)
 COPY . .
 
-# Faz o restore (o dotnet encontra o .csproj automaticamente na árvore de pastas)
-RUN dotnet restore
+# Restaura a solução inteira
+RUN dotnet restore "BibliotecaAPI.sln"
 
-# Faz o build
-# RUN dotnet build "BibliotecaAPI/BibliotecaAPI.csproj" -c Release -o /app/build
-RUN dotnet build "BibliotecaAPI.csproj" -c Release -o /app/build
+# Faz o build da solução inteira
+RUN dotnet build "BibliotecaAPI.sln" -c Release -o /app/build
+
 FROM build AS publish
-RUN dotnet publish "BibliotecaAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
-# RUN dotnet publish "BibliotecaAPI/BibliotecaAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+# Faz o publish apontando para o projeto da API, mas já aproveitando o build da solução
+RUN dotnet publish "BibliotecaAPI/BibliotecaAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Configuração final
+# Final continua igual
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-
 ENTRYPOINT ["dotnet", "BibliotecaAPI.dll"]
