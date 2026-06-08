@@ -1,24 +1,20 @@
-# Estágio de Build
+# 1. Estágio de Build (SDK contém tudo o que precisa para compilar o projeto)
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-
-# Copia tudo para o diretório de trabalho
 COPY . .
-
-# Restaura a solution (dinâmico)
+# Usa o find aqui porque o SDK tem ferramentas de terminal para rodar o build
 RUN dotnet restore "$(find . -name '*.sln')"
-
-# Faz o build da solution (dinâmico)
 RUN dotnet build "$(find . -name '*.sln')" -c Release -o /app/build
 
-# Estágio de Publish
+# 2. Estágio de Publish (Gera os arquivos finais)
 FROM build AS publish
-# Aqui está o segredo: não usar mais "BibliotecaAPI/BibliotecaAPI.csproj"
-# Usar o find para achar o .csproj, não importa onde ele esteja
 RUN dotnet publish "$(find . -name '*.csproj')" -c Release -o /app/publish /p:UseAppHost=false
 
-# Estágio Final (Runtime)
+# 3. Estágio Final (Runtime - é leve, não tem SDK, por isso é mais rápido)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "$(find . -name '*.dll' | grep -v 'obj' | head -n 1)"]
+
+# Nome fixo, sem comandos de busca complexos.
+# O container só precisa saber o nome da DLL que foi gerada no passo anterior.
+ENTRYPOINT ["dotnet", "BibliotecaAPI.dll"]
